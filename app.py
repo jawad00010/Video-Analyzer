@@ -3,6 +3,7 @@ import tempfile
 from openai import OpenAI
 import numpy as np
 import cv2
+from voice_analyzer import fake_voice_analysis
 
 
 
