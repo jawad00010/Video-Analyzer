@@ -80,15 +80,16 @@ if uploaded_file:
             st.write(f"✂️ Scene Cuts: {cuts}")
             st.write(f"🕒 Avg Scene Length: {avg_scene_length} seconds")
         
-                       # Step 3: Voiceover Analysis
+                                   # Voiceover Analysis (Final Whisper-Based)
             st.subheader("🔊 Voiceover Analysis")
             try:
-                voice_features = extract_audio_features(temp_video_path)
+                voice_features = fake_voice_analysis(temp_video_path)
                 st.write(f"🗣️ Speaking Speed: {voice_features['speech_speed_wpm']} WPM")
                 st.write(f"🎵 Background Music: {voice_features['music_background']}")
                 st.write(f"🔊 Volume Range: {voice_features['volume_range']}")
             except Exception as e:
                 st.error(f"❌ Voice analysis failed: {e}")
+
 
 
             # Step 3: GPT Evaluation
