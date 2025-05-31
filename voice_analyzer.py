@@ -1,35 +1,30 @@
-import ffmpeg
-import librosa
-import numpy as np
-import tempfile
+import openai
 import os
 
-def extract_audio_features(video_path):
-    # Step 1: Extract audio from video using ffmpeg-python
-    temp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+# Needs st.secrets["openai_api_key"]
+client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY", ""))
 
-    ffmpeg.input(video_path).output(temp_wav, format='wav', acodec='pcm_s16le', ac=1, ar='16k').run(quiet=True, overwrite_output=True)
+def fake_voice_analysis(video_path):
+    try:
+        # Get transcript with word-level timestamps
+        with open(video_path, "rb") as f:
+            result = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=f,
+                response_format="verbose_json",
+                timestamp_granularities=["word"]
+            )
+        
+        words = result.words
+        total_words = len(words)
+        duration = result.duration
+        wpm = round((total_words / duration) * 60, 2) if duration > 0 else 0
 
-    # Step 2: Load with librosa
-    y, sr = librosa.load(temp_wav)
+        return {
+            "speech_speed_wpm": wpm,
+            "music_background": "Unknown",  # Placeholder
+            "volume_range": "Unknown"       # Placeholder
+        }
 
-    # Step 3: Voice speed estimation
-    frames = librosa.util.frame(y, frame_length=2048, hop_length=512)
-    energy = np.sum(frames**2, axis=0)
-    speech_frames = energy > np.percentile(energy, 85)
-    speech_ratio = np.sum(speech_frames) / len(speech_frames)
-    speech_speed = round(speech_ratio * 180, 2)
-
-    # Step 4: Volume & music detection
-    rms = librosa.feature.rms(y=y).flatten()
-    volume_range = round(np.max(rms) - np.min(rms), 4)
-    music_detected = volume_range > 0.02
-
-    # Clean up
-    os.remove(temp_wav)
-
-    return {
-        "speech_speed_wpm": speech_speed,
-        "music_background": "Yes" if music_detected else "No",
-        "volume_range": volume_range
-    }
+    except Exception as e:
+        raise RuntimeError(f"Voice analysis failed: {e}")
