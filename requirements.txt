@@ -1,2 +1,5 @@
 streamlit
 openai>=1.0.0
+opencv-python
+moviepy
+numpy
