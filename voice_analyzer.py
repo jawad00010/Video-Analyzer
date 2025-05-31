@@ -1,13 +1,13 @@
-from pydub import AudioSegment
+from moviepy.editor import VideoFileClip
 import librosa
 import numpy as np
 import tempfile
 
 def extract_audio_features(video_path):
-    # Convert MP4 to WAV
+    # Extract audio using moviepy
+    audio_clip = VideoFileClip(video_path).audio
     temp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
-    audio = AudioSegment.from_file(video_path)
-    audio.export(temp_wav, format="wav")
+    audio_clip.write_audiofile(temp_wav, codec='pcm_s16le', verbose=False, logger=None)
 
     # Load using librosa
     y, sr = librosa.load(temp_wav)
@@ -17,13 +17,11 @@ def extract_audio_features(video_path):
     energy = np.sum(frames**2, axis=0)
     speech_frames = energy > np.percentile(energy, 85)
     speech_ratio = np.sum(speech_frames) / len(speech_frames)
-    speech_speed = round(speech_ratio * 180, 2)  # Est. words per minute
+    speech_speed = round(speech_ratio * 180, 2)  # Estimated WPM
 
     # Volume range detection
     rms = librosa.feature.rms(y=y).flatten()
     volume_range = round(np.max(rms) - np.min(rms), 4)
-
-    # Classification
     music_detected = volume_range > 0.02
 
     return {
