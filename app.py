@@ -34,3 +34,13 @@ if uploaded_file:
             st.write(transcript.text)
         except Exception as e:
             st.error(f"❌ Transcript extraction failed: {e}")
+from visual_analyzer import analyze_visuals
+
+st.subheader("🎬 Visual Analysis")
+
+visuals = analyze_visuals(temp_video_path)
+st.write(f"📏 Duration: {visuals['duration']} sec")
+st.write(f"🌕 Avg Brightness: {visuals['avg_brightness']}")
+st.write(f"✂️ Scene Cuts Detected: {visuals['scene_cuts']}")
+st.write(f"⏱️ Avg Scene Length: {visuals['scene_pace']} sec")
+
