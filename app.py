@@ -1,7 +1,6 @@
 import streamlit as st
 import tempfile
 from openai import OpenAI
-from moviepy.editor import VideoFileClip
 import numpy as np
 import cv2
 
@@ -40,10 +39,11 @@ if uploaded_file:
 
             # Step 2: Visual Analysis
             st.subheader("🎬 Visual Analysis")
-
-            # Duration from moviepy
-            clip = VideoFileClip(temp_video_path)
-            duration = round(clip.duration, 2)
+    # duration 
+            cap = cv2.VideoCapture(temp_video_path)
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+            duration = round(frame_count / fps, 2) if fps > 0 else 0
 
             # Brightness and cuts using OpenCV
             cap = cv2.VideoCapture(temp_video_path)
