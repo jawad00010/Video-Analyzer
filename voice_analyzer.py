@@ -1,8 +1,8 @@
 import openai
-import os
+import streamlit as st
 
-# Needs st.secrets["openai_api_key"]
-client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY", ""))
+openai.api_key = st.secrets["openai_api_key"]
+
 
 def fake_voice_analysis(video_path):
     try:
