@@ -1,6 +1,8 @@
 import streamlit as st
 import tempfile
+import cv2
 from openai import OpenAI
+
 
 # Load OpenAI key from Streamlit Secrets
 client = OpenAI(api_key=st.secrets["openai_api_key"])
