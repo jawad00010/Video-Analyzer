@@ -3,6 +3,8 @@ import tempfile
 from openai import OpenAI
 import numpy as np
 import cv2
+from voice_analyzer import extract_audio_features
+
 
 # Load OpenAI API Key
 client = OpenAI(api_key=st.secrets["openai_api_key"])
@@ -77,6 +79,14 @@ if uploaded_file:
             st.write(f"💡 Average Brightness: {avg_brightness}")
             st.write(f"✂️ Scene Cuts: {cuts}")
             st.write(f"🕒 Avg Scene Length: {avg_scene_length} seconds")
+        
+            # Step 3: Voiceover Analysis
+            st.subheader("🔊 Voiceover Analysis")
+            voice_features = extract_audio_features(temp_video_path)
+            
+            st.write(f"🗣️ Speaking Speed: {voice_features['speech_speed_wpm']} WPM")
+            st.write(f"🎵 Background Music: {voice_features['music_background']}")
+            st.write(f"🔊 Volume Range: {voice_features['volume_range']}")
 
             # Step 3: GPT Evaluation
             st.subheader("🤖 GPT Performance Evaluation")
