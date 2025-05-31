@@ -3,7 +3,7 @@ import tempfile
 from openai import OpenAI
 import numpy as np
 import cv2
-from voice_analyzer import extract_audio_features
+
 
 
 # Load OpenAI API Key
