@@ -1,48 +1,115 @@
 import streamlit as st
 import tempfile
-import cv2
 from openai import OpenAI
+from moviepy.editor import VideoFileClip
+import numpy as np
+import cv2
 
-
-# Load OpenAI key from Streamlit Secrets
+# Load OpenAI API Key
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
-st.set_page_config(page_title="Video Transcript Extractor", layout="centered")
-st.title("🎥 Upload Ad Video & Extract Transcript")
+st.set_page_config(page_title="AI Video Ad Analyzer", layout="centered")
+st.title("📊 AI Video Ad Performance Predictor")
 
-# Step 1: Upload
-uploaded_file = st.file_uploader("Upload a video (.mp4)", type=["mp4"])
-market = st.selectbox("Select Target Market", ["UAE", "KSA", "Qatar", "Kuwait", "Global"])
+# Upload section
+uploaded_file = st.file_uploader("Upload your ad video (.mp4)", type=["mp4"])
+market = st.selectbox("Target Market", ["UAE", "KSA", "Qatar", "Kuwait", "Global"])
 
 if uploaded_file:
+    # Save video
     temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
     temp_video.write(uploaded_file.read())
     temp_video_path = temp_video.name
 
     st.video(uploaded_file)
-    st.success("✅ Video uploaded successfully!")
-
+    st.success("✅ Video uploaded and saved temporarily.")
     st.session_state["video_path"] = temp_video_path
     st.session_state["market"] = market
 
-    if st.button("Extract Transcript"):
+    if st.button("Extract & Analyze"):
         try:
+            # Step 1: Transcript (Whisper)
             with open(temp_video_path, "rb") as audio_file:
                 transcript = client.audio.transcriptions.create(
                     model="whisper-1",
                     file=audio_file
                 )
-            st.success("🎧 Transcript:")
-            st.write(transcript.text)
+            transcript_text = transcript.text
+            st.subheader("📜 Transcript")
+            st.write(transcript_text)
+
+            # Step 2: Visual Analysis
+            st.subheader("🎬 Visual Analysis")
+
+            # Duration from moviepy
+            clip = VideoFileClip(temp_video_path)
+            duration = round(clip.duration, 2)
+
+            # Brightness and cuts using OpenCV
+            cap = cv2.VideoCapture(temp_video_path)
+            frame_count = 0
+            brightness_total = 0
+            cuts = 0
+            _, prev = cap.read()
+            i = 0
+
+            while True:
+                ret, curr = cap.read()
+                if not ret:
+                    break
+                gray = cv2.cvtColor(curr, cv2.COLOR_BGR2GRAY)
+                brightness_total += np.mean(gray)
+                frame_count += 1
+
+                if i % 20 == 0 and prev is not None:
+                    diff = cv2.absdiff(cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY), gray)
+                    score = np.sum(diff) / diff.size
+                    if score > 30:
+                        cuts += 1
+                    prev = curr
+                i += 1
+            cap.release()
+
+            avg_brightness = round(brightness_total / frame_count, 2) if frame_count else 0
+            avg_scene_length = round(duration / cuts, 2) if cuts > 0 else duration
+
+            st.write(f"⏱️ Duration: {duration} seconds")
+            st.write(f"💡 Average Brightness: {avg_brightness}")
+            st.write(f"✂️ Scene Cuts: {cuts}")
+            st.write(f"🕒 Avg Scene Length: {avg_scene_length} seconds")
+
+            # Step 3: GPT Evaluation
+            st.subheader("🤖 GPT Performance Evaluation")
+
+            prompt = f"""
+            You are a video ad performance analyst for TikTok and Meta platforms.
+
+            Analyze the following video for its potential success in the {market} market.
+
+            Transcript:
+            \"\"\"{transcript_text}\"\"\"
+
+            Visual Info:
+            - Duration: {duration} seconds
+            - Brightness: {avg_brightness}
+            - Scene Cuts: {cuts}
+            - Avg Scene Length: {avg_scene_length} seconds
+
+            Please provide:
+            1. Estimated probability of success (0–100%)
+            2. Short reason
+            3. 2 suggestions to improve performance
+            4. Type of hook/tone/style
+            """
+
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            result = response.choices[0].message.content
+            st.markdown("### 🧠 GPT Response:")
+            st.write(result)
+
         except Exception as e:
-            st.error(f"❌ Transcript extraction failed: {e}")
-from visual_analyzer import analyze_visuals
-
-st.subheader("🎬 Visual Analysis")
-
-visuals = analyze_visuals(temp_video_path)
-st.write(f"📏 Duration: {visuals['duration']} sec")
-st.write(f"🌕 Avg Brightness: {visuals['avg_brightness']}")
-st.write(f"✂️ Scene Cuts Detected: {visuals['scene_cuts']}")
-st.write(f"⏱️ Avg Scene Length: {visuals['scene_pace']} sec")
-
+            st.error(f"❌ Something went wrong: {e}")
