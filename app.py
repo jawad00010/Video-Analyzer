@@ -4,6 +4,19 @@ from openai import OpenAI
 import numpy as np
 import cv2
 from voice_analyzer import fake_voice_analysis
+from voice_analyzer import analyze_voice
+
+if video_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
+        temp_video.write(video_file.read())
+        voice_result = analyze_voice(temp_video.name)
+
+        if "error" not in voice_result:
+            st.markdown("### 🗣️ Voice Analysis")
+            st.write(f"🕒 Speech Speed: {voice_result['speech_speed_wpm']} WPM")
+            st.write(f"💬 Summary: {voice_result['voice_summary']}")
+        else:
+            st.error(voice_result["error"])
 
 
 
