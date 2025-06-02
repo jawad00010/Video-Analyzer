@@ -78,10 +78,29 @@ if uploaded_file:
             # Step 3: GPT Performance Scoring
             st.subheader("🤖 GPT Performance Evaluation")
 
-            prompt = f"""
-You are a video ad performance analyst for TikTok and Meta platforms.
+           from training_loader import load_training_examples
 
-Analyze the following video for its potential success in the {market} market.
+examples = load_training_examples()
+
+# Build few-shot prompt
+prompt = "You are a video ad performance analyst for TikTok and Meta platforms.\n\n"
+
+for i, ex in enumerate(examples):
+    prompt += f"""
+Example {i+1}:
+Transcript: {ex['transcript'][:500]}...
+Visuals:
+- Duration: {ex['duration']}s
+- Brightness: {ex['brightness']}
+- Scene Cuts: {ex['cuts']}
+- Avg Scene Length: {ex['avg_scene_length']}s
+Market: {ex['market']}
+Performance: {ex['label']}
+
+"""
+
+prompt += f"""
+Now evaluate this new ad in the {market} market:
 
 Transcript:
 \"\"\"{transcript_text}\"\"\"
