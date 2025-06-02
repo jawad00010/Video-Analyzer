@@ -3,11 +3,16 @@ import tempfile
 from openai import OpenAI
 import numpy as np
 import cv2
+from script_analyzer import analyze_script
+from visual_analyzer import analyze_visuals
 
+# ⬅️ This must be FIRST Streamlit command
+st.set_page_config(page_title="AI Video Ad Analyzer", layout="centered")
 
 st.title("🎥 Ad Performance Video Analyzer")
 
 video_file = st.file_uploader("Upload your video", type=["mp4", "mov", "mkv"])
+
 
 if video_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
