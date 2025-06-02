@@ -95,14 +95,22 @@ if uploaded_file:
             st.write(f"🕒 Avg Scene Length: {avg_scene_length} seconds")
         
                                    # Voiceover Analysis (Final Whisper-Based)
-            st.subheader("🔊 Voiceover Analysis")
-            try:
-                voice_features = fake_voice_analysis(temp_video_path)
-                st.write(f"🗣️ Speaking Speed: {voice_features['speech_speed_wpm']} WPM")
-                st.write(f"🎵 Background Music: {voice_features['music_background']}")
-                st.write(f"🔊 Volume Range: {voice_features['volume_range']}")
-            except Exception as e:
-                st.error(f"❌ Voice analysis failed: {e}")
+            from voice_analyzer import analyze_uploaded_audio
+
+            st.markdown("## 🧠 Upload voice for analysis (.mp3 only)")
+            audio_file = st.file_uploader("🎧 Upload 30s audio file", type=["mp3", "wav", "m4a"])
+            
+            if audio_file:
+                with st.spinner("Analyzing voice..."):
+                    voice_result = analyze_uploaded_audio(audio_file)
+            
+                    if "error" not in voice_result:
+                        st.markdown("### 🗣️ Voice Analysis")
+                        st.write(f"🕒 Speech Speed: {voice_result['speech_speed_wpm']} WPM")
+                        st.write(f"💬 Summary: {voice_result['voice_summary']}")
+                    else:
+                        st.error(voice_result["error"])
+
 
 
 
