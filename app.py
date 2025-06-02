@@ -1,53 +1,28 @@
 import streamlit as st
 import tempfile
-from openai import OpenAI
-import numpy as np
 import cv2
-from transcript_extractor import analyze_script
-from visual_analyzer import analyze_visuals
+import numpy as np
+from openai import OpenAI
 
-# ⬅️ This must be FIRST Streamlit command
+# Set Streamlit config (must be first)
 st.set_page_config(page_title="AI Video Ad Analyzer", layout="centered")
-
 st.title("🎥 Ad Performance Video Analyzer")
 
-video_file = st.file_uploader("Upload your video", type=["mp4", "mov", "mkv"])
-
-
-if video_file:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
-        temp_video.write(video_file.read())
-        voice_result = analyze_voice(temp_video.name)
-
-        if "error" not in voice_result:
-            st.markdown("### 🗣️ Voice Analysis")
-            st.write(f"🕒 Speech Speed: {voice_result['speech_speed_wpm']} WPM")
-            st.write(f"💬 Summary: {voice_result['voice_summary']}")
-        else:
-            st.error(voice_result["error"])
-
-
-
-# Load OpenAI API Key
+# Load OpenAI client
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
-st.set_page_config(page_title="AI Video Ad Analyzer", layout="centered")
-st.title("📊 AI Video Ad Performance Predictor")
-
-# Upload section
-uploaded_file = st.file_uploader("Upload your ad video (.mp4)", type=["mp4"])
+# Upload video
+uploaded_file = st.file_uploader("Upload your ad video (.mp4, .mov, .mkv)", type=["mp4", "mov", "mkv"])
 market = st.selectbox("Target Market", ["UAE", "KSA", "Qatar", "Kuwait", "Global"])
 
 if uploaded_file:
-    # Save video
+    # Save video temporarily
     temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
     temp_video.write(uploaded_file.read())
     temp_video_path = temp_video.name
 
     st.video(uploaded_file)
-    st.success("✅ Video uploaded and saved temporarily.")
-    st.session_state["video_path"] = temp_video_path
-    st.session_state["market"] = market
+    st.success("✅ Video uploaded successfully.")
 
     if st.button("Extract & Analyze"):
         try:
@@ -63,17 +38,15 @@ if uploaded_file:
 
             # Step 2: Visual Analysis
             st.subheader("🎬 Visual Analysis")
-    # duration 
+
             cap = cv2.VideoCapture(temp_video_path)
             fps = cap.get(cv2.CAP_PROP_FPS)
-            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-            duration = round(frame_count / fps, 2) if fps > 0 else 0
+            total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+            duration = round(total_frames / fps, 2) if fps > 0 else 0
 
-            # Brightness and cuts using OpenCV
-            cap = cv2.VideoCapture(temp_video_path)
-            frame_count = 0
             brightness_total = 0
             cuts = 0
+            frame_count = 0
             _, prev = cap.read()
             i = 0
 
@@ -98,42 +71,42 @@ if uploaded_file:
             avg_scene_length = round(duration / cuts, 2) if cuts > 0 else duration
 
             st.write(f"⏱️ Duration: {duration} seconds")
-            st.write(f"💡 Average Brightness: {avg_brightness}")
+            st.write(f"💡 Avg Brightness: {avg_brightness}")
             st.write(f"✂️ Scene Cuts: {cuts}")
             st.write(f"🕒 Avg Scene Length: {avg_scene_length} seconds")
 
-            # Step 3: GPT Evaluation
+            # Step 3: GPT Performance Scoring
             st.subheader("🤖 GPT Performance Evaluation")
 
             prompt = f"""
-            You are a video ad performance analyst for TikTok and Meta platforms.
+You are a video ad performance analyst for TikTok and Meta platforms.
 
-            Analyze the following video for its potential success in the {market} market.
+Analyze the following video for its potential success in the {market} market.
 
-            Transcript:
-            \"\"\"{transcript_text}\"\"\"
+Transcript:
+\"\"\"{transcript_text}\"\"\"
 
-            Visual Info:
-            - Duration: {duration} seconds
-            - Brightness: {avg_brightness}
-            - Scene Cuts: {cuts}
-            - Avg Scene Length: {avg_scene_length} seconds
+Visual Info:
+- Duration: {duration} seconds
+- Brightness: {avg_brightness}
+- Scene Cuts: {cuts}
+- Avg Scene Length: {avg_scene_length} seconds
 
-            Please provide:
-            1. Estimated probability of success (0–100%)
-            2. Short reason
-            3. 2 suggestions to improve performance
-            4. Type of hook/tone/style
-            """
+Please provide:
+1. Estimated probability of success (0–100%)
+2. Short reason
+3. 2 suggestions to improve performance
+4. Type of hook/tone/style
+"""
 
             response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt}]
             )
 
-            result = response.choices[0].message.content
+            gpt_result = response.choices[0].message.content.strip()
             st.markdown("### 🧠 GPT Response:")
-            st.write(result)
+            st.write(gpt_result)
 
         except Exception as e:
             st.error(f"❌ Something went wrong: {e}")
