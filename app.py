@@ -91,26 +91,6 @@ if uploaded_file:
             st.write(f"💡 Average Brightness: {avg_brightness}")
             st.write(f"✂️ Scene Cuts: {cuts}")
             st.write(f"🕒 Avg Scene Length: {avg_scene_length} seconds")
-        
-                                   # Voiceover Analysis (Final Whisper-Based)
-         #   from voice_analyzer import analyze_uploaded_audio
-
-            #st.markdown("## 🧠 Upload voice for analysis (.mp3 only)")
-           # audio_file = st.file_uploader("🎧 Upload 30s audio file", type=["mp3", "wav", "m4a"])
-            
-            #if audio_file:
-             #   with st.spinner("Analyzing voice..."):
-              #      voice_result = analyze_uploaded_audio(audio_file)
-            
-               #     if "error" not in voice_result:
-                #        st.markdown("### 🗣️ Voice Analysis")
-                 #       st.write(f"🕒 Speech Speed: {voice_result['speech_speed_wpm']} WPM")
-                  #      st.write(f"💬 Summary: {voice_result['voice_summary']}")
-                   # else:
-                    #    st.error(voice_result["error"])
-
-
-
 
             # Step 3: GPT Evaluation
             st.subheader("🤖 GPT Performance Evaluation")
