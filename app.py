@@ -3,7 +3,7 @@ import tempfile
 from openai import OpenAI
 import numpy as np
 import cv2
-from script_analyzer import analyze_script
+from transcript_extractor import analyze_script
 from visual_analyzer import analyze_visuals
 
 # ⬅️ This must be FIRST Streamlit command
