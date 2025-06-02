@@ -3,8 +3,8 @@ import tempfile
 from openai import OpenAI
 import numpy as np
 import cv2
-from voice_analyzer import fake_voice_analysis
-from voice_analyzer import analyze_voice
+#from voice_analyzer import fake_voice_analysis
+#from voice_analyzer import analyze_voice
 
 if video_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
