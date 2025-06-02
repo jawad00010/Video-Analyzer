@@ -4,6 +4,11 @@ from openai import OpenAI
 import numpy as np
 import cv2
 
+
+st.title("🎥 Ad Performance Video Analyzer")
+
+video_file = st.file_uploader("Upload your video", type=["mp4", "mov", "mkv"])
+
 if video_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
         temp_video.write(video_file.read())
