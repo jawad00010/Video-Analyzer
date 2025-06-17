@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from openai import OpenAI
 from training_loader import load_training_examples
+from moviepy.editor import VideoFileClip
 
 # Set Streamlit config (must be first)
 st.set_page_config(page_title="AI Video Ad Analyzer", layout="centered")
@@ -27,29 +28,18 @@ if uploaded_file:
 
     if st.button("Extract & Analyze"):
         try:
-            # Step 1: Transcript (Whisper)
-            from moviepy.editor import VideoFileClip
-
-# Step 1: Extract Audio and Get Transcript
-st.subheader("📜 Transcript")
-
-        # Extract audio from video and save as temporary mp3
-        audio_path = temp_video_path.replace(".mp4", ".mp3")
-        video_clip = VideoFileClip(temp_video_path)
-        video_clip.audio.write_audiofile(audio_path)
-        
-        # Transcribe using Whisper
-        with open(audio_path, "rb") as audio_file:
-            transcript = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file
-            )
-
-transcript_text = transcript.text
-st.write(transcript_text)
-
-            transcript_text = transcript.text
+            # Step 1: Extract Audio and Transcribe
             st.subheader("📜 Transcript")
+            audio_path = temp_video_path.replace(".mp4", ".mp3")
+            video_clip = VideoFileClip(temp_video_path)
+            video_clip.audio.write_audiofile(audio_path)
+
+            with open(audio_path, "rb") as audio_file:
+                transcript = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file
+                )
+            transcript_text = transcript.text
             st.write(transcript_text)
 
             # Step 2: Visual Analysis
