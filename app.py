@@ -75,18 +75,17 @@ if uploaded_file:
             st.write(f"✂️ Scene Cuts: {cuts}")
             st.write(f"🕒 Avg Scene Length: {avg_scene_length} seconds")
 
-            # Step 3: GPT Performance Scoring
+                        # Step 3: GPT Performance Scoring
             st.subheader("🤖 GPT Performance Evaluation")
 
-           from training_loader import load_training_examples
+            from training_loader import load_training_examples
+            examples = load_training_examples()
 
-examples = load_training_examples()
+            # Build few-shot prompt
+            prompt = "You are a video ad performance analyst for TikTok and Meta platforms.\n\n"
 
-# Build few-shot prompt
-prompt = "You are a video ad performance analyst for TikTok and Meta platforms.\n\n"
-
-for i, ex in enumerate(examples):
-    prompt += f"""
+            for i, ex in enumerate(examples):
+                prompt += f"""
 Example {i+1}:
 Transcript: {ex['transcript'][:500]}...
 Visuals:
@@ -99,7 +98,7 @@ Performance: {ex['label']}
 
 """
 
-prompt += f"""
+            prompt += f"""
 Now evaluate this new ad in the {market} market:
 
 Transcript:
@@ -126,6 +125,3 @@ Please provide:
             gpt_result = response.choices[0].message.content.strip()
             st.markdown("### 🧠 GPT Response:")
             st.write(gpt_result)
-
-        except Exception as e:
-            st.error(f"❌ Something went wrong: {e}")
